@@ -17,7 +17,9 @@ import org.schabi.newpipe.extractor.stream.StreamInfoItemsCollector;
 import org.schabi.newpipe.extractor.stream.StreamType;
 import org.schabi.newpipe.extractor.stream.VideoStream;
 import org.schabi.newpipe.extractor.utils.Utils;
+import org.schabi.newpipe.extractor.utils.UtilsTest;
 
+import java.io.IOException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
@@ -29,6 +31,7 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
+import static org.schabi.newpipe.extractor.ExtractorAsserts.assertEmpty;
 import static org.schabi.newpipe.extractor.ExtractorAsserts.assertIsSecureUrl;
 import static org.schabi.newpipe.extractor.ServiceList.YouTube;
 
@@ -227,6 +230,26 @@ public class YoutubeStreamExtractorDefaultTest {
             long dislikeCount = extractor.getDislikeCount();
             assertTrue("" + dislikeCount, dislikeCount >= 818000);
         }
+
+        @Test
+        public void testGetCategory() throws ParsingException {
+            assertEquals("Music", extractor.getCategory());
+        }
+
+        @Test
+        public void testGetPrivacy() throws ParsingException {
+            assertEquals("Public", extractor.getPrivacy());
+        }
+
+        @Test
+        public void testGetTags() {
+            assertTrue(extractor.getTags().contains("Adele"));
+        }
+
+        @Test
+        public void testGetLicence() throws ParsingException {
+            assertTrue(extractor.getLicence().contains("SME (on behalf of XL Recordings Limited.);"));
+        }
     }
 
     public static class DescriptionTestPewdiepie {
@@ -251,6 +274,11 @@ public class YoutubeStreamExtractorDefaultTest {
             assertTrue(extractor.getDescription().getContent().contains("https://www.reddit.com/r/PewdiepieSubmissions/"));
             assertTrue(extractor.getDescription().getContent().contains("https://www.youtube.com/channel/UC3e8EMTOn4g6ZSKggHTnNng"));
             assertTrue(extractor.getDescription().getContent().contains("https://usa.clutchchairz.com/product/pewdiepie-edition-throttle-series/"));
+        }
+
+        @Test
+        public void testGetLicence() throws ParsingException, IOException {
+            assertEmpty(extractor.getLicence());
         }
     }
 
@@ -326,6 +354,23 @@ public class YoutubeStreamExtractorDefaultTest {
                     ExtractorAsserts.assertIsSecureUrl(url);
                 }
             }
+        }
+    }
+
+    public static class UnlistedTest {
+        private static YoutubeStreamExtractor extractor;
+
+        @BeforeClass
+        public static void setUp() throws Exception {
+            NewPipe.init(DownloaderTestImpl.getInstance());
+            extractor = (YoutubeStreamExtractor) YouTube
+                    .getStreamExtractor("https://www.youtube.com/watch?v=tjz2u2DiveM");
+            extractor.fetchPage();
+        }
+
+        @Test
+        public void testGetUnlisted() throws Exception {
+            assertEquals("Unlisted", extractor.getPrivacy());
         }
     }
 }

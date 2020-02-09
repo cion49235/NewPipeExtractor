@@ -24,14 +24,12 @@ import org.schabi.newpipe.extractor.stream.StreamInfoItemsCollector;
 import org.schabi.newpipe.extractor.stream.StreamType;
 import org.schabi.newpipe.extractor.stream.SubtitlesStream;
 import org.schabi.newpipe.extractor.stream.VideoStream;
+import org.schabi.newpipe.extractor.utils.JsonUtils;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Locale;
+import java.util.*;
 
 import javax.annotation.Nonnull;
 
@@ -289,17 +287,17 @@ public class SoundcloudStreamExtractor extends StreamExtractor {
 
     @Override
     public String getPrivacy() throws ParsingException {
-        return "";
+        return JsonUtils.getString(track, "sharing");
     }
 
     @Override
     public String getCategory() throws ParsingException {
-        return "";
+        return JsonUtils.getString(track, "genre");
     }
 
     @Override
     public String getLicence() throws ParsingException {
-        return "";
+        return JsonUtils.getString(track, "license");
     }
 
     @Override
@@ -310,7 +308,8 @@ public class SoundcloudStreamExtractor extends StreamExtractor {
     @Nonnull
     @Override
     public List<String> getTags() throws ParsingException {
-        return new ArrayList<>();
+        String tags_string = track.getString("tag_list");
+        return new ArrayList<>(Arrays.asList(tags_string.split(" ")));
     }
 
     @Nonnull

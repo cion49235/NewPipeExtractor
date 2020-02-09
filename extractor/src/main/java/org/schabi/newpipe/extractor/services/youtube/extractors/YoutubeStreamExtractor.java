@@ -3,7 +3,6 @@ package org.schabi.newpipe.extractor.services.youtube.extractors;
 import com.grack.nanojson.JsonArray;
 import com.grack.nanojson.JsonObject;
 import com.grack.nanojson.JsonParser;
-
 import org.mozilla.javascript.Context;
 import org.mozilla.javascript.Function;
 import org.mozilla.javascript.ScriptableObject;
@@ -23,34 +22,16 @@ import org.schabi.newpipe.extractor.localization.TimeAgoPatternsManager;
 import org.schabi.newpipe.extractor.services.youtube.ItagItem;
 import org.schabi.newpipe.extractor.services.youtube.linkHandler.YoutubeChannelLinkHandlerFactory;
 import org.schabi.newpipe.extractor.services.youtube.YoutubeParsingHelper;
-import org.schabi.newpipe.extractor.stream.AudioStream;
-import org.schabi.newpipe.extractor.stream.Description;
-import org.schabi.newpipe.extractor.stream.Frameset;
-import org.schabi.newpipe.extractor.stream.Stream;
-import org.schabi.newpipe.extractor.stream.StreamExtractor;
-import org.schabi.newpipe.extractor.stream.StreamInfoItem;
-import org.schabi.newpipe.extractor.stream.StreamInfoItemsCollector;
-import org.schabi.newpipe.extractor.stream.StreamType;
-import org.schabi.newpipe.extractor.stream.SubtitlesStream;
-import org.schabi.newpipe.extractor.stream.VideoStream;
+import org.schabi.newpipe.extractor.stream.*;
 import org.schabi.newpipe.extractor.utils.Parser;
 import org.schabi.newpipe.extractor.utils.Utils;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Collections;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import java.util.*;
 
 import static org.schabi.newpipe.extractor.services.youtube.YoutubeParsingHelper.*;
 import static org.schabi.newpipe.extractor.utils.JsonUtils.EMPTY_STRING;
@@ -160,7 +141,8 @@ public class YoutubeStreamExtractor extends StreamExtractor {
             Date d = new SimpleDateFormat("dd MMM yyyy", Locale.ENGLISH).parse(
                     getTextFromObject(getVideoPrimaryInfoRenderer().getObject("dateText")));
             return new SimpleDateFormat("yyyy-MM-dd").format(d);
-        } catch (Exception ignored) {}
+        } catch (Exception ignored) {
+        }
         throw new ParsingException("Could not get upload date");
     }
 
@@ -197,7 +179,7 @@ public class YoutubeStreamExtractor extends StreamExtractor {
         assertPageFetched();
         // description with more info on links
         String description = getTextFromObject(getVideoSecondaryInfoRenderer().getObject("description"), true);
-        if (description != null && !description.isEmpty()) return new Description(description, Description.HTML);
+        if (!isNullOrEmpty(description)) return new Description(description, Description.HTML);
 
         // raw non-html description
         return new Description(playerResponse.getObject("videoDetails").getString("shortDescription"), Description.PLAIN_TEXT);
@@ -313,7 +295,7 @@ public class YoutubeStreamExtractor extends StreamExtractor {
 
             String uploaderUrl = getUrlFromNavigationEndpoint(getVideoSecondaryInfoRenderer()
                     .getObject("owner").getObject("videoOwnerRenderer").getObject("navigationEndpoint"));
-            if (uploaderUrl != null && !uploaderUrl.isEmpty()) return uploaderUrl;
+            if (!isNullOrEmpty(uploaderUrl)) return uploaderUrl;
 
 
         String uploaderId = playerResponse.getObject("videoDetails").getString("channelId");
@@ -940,7 +922,8 @@ public class YoutubeStreamExtractor extends StreamExtractor {
 
                         urlAndItags.put(streamUrl, itagItem);
                     }
-                } catch (UnsupportedEncodingException ignored) {}
+                } catch (UnsupportedEncodingException ignored) {
+                }
             }
         }
 
@@ -1002,20 +985,43 @@ public class YoutubeStreamExtractor extends StreamExtractor {
 
     @Nonnull
     @Override
-    public String getPrivacy() {
-        return "";
+    public String getPrivacy() throws ParsingException {
+        boolean isUnlisted = playerResponse
+                .getObject("microformat")
+                .getObject("playerMicroformatRenderer")
+                .getBoolean("isUnlisted");
+        return isUnlisted ? "Unlisted" : "Public";
     }
 
     @Nonnull
     @Override
-    public String getCategory() {
-        return "";
+    public String getCategory() throws ParsingException {
+        try {
+            return playerResponse.getObject("microformat")
+                    .getObject("playerMicroformatRenderer")
+                    .getString("category");
+        } catch (Exception ignored) {
+            return "";
+        }
     }
 
     @Nonnull
     @Override
     public String getLicence() {
-        return "";
+        try {
+            JsonArray rows = initialData.getObject("contents")
+                    .getObject("twoColumnWatchNextResults").getObject("results").getObject("results")
+                    .getArray("contents").getObject(1).getObject("videoSecondaryInfoRenderer")
+                    .getObject("metadataRowContainer").getObject("metadataRowContainerRenderer").getArray("rows");
+            JsonObject metadataRowRenderer = rows.getObject(rows.size() - 1) // it is usually last
+                    .getObject("metadataRowRenderer");
+            String probablyLicence = getTextFromObject(metadataRowRenderer.getArray("contents").getObject(0));
+            return getTextFromObject(metadataRowRenderer.getObject("title")).toLowerCase().contains("licensed")
+                    ? probablyLicence
+                    : "";
+        } catch (Exception e) {
+            return "";
+        }
     }
 
     @Override
@@ -1026,7 +1032,12 @@ public class YoutubeStreamExtractor extends StreamExtractor {
     @Nonnull
     @Override
     public List<String> getTags() {
-        return new ArrayList<>();
+        JsonArray tagsArray = playerResponse.getObject("videoDetails").getArray("keywords");
+        List<String> tagsList = new ArrayList<>();
+        for (Object tag : tagsArray) {
+            tagsList.add((String) tag);
+        }
+        return tagsList;
     }
 
     @Nonnull

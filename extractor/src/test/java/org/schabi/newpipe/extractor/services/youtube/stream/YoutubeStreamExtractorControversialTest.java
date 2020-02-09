@@ -69,6 +69,11 @@ public class YoutubeStreamExtractorControversialTest {
     }
 
     @Test
+    public void testGetCategory() throws ParsingException {
+        assertEquals("Entertainment", extractor.getCategory());
+    }
+
+    @Test
     public void testGetUploaderName() throws ParsingException {
         assertNotNull(extractor.getUploaderName());
         assertFalse(extractor.getUploaderName().isEmpty());

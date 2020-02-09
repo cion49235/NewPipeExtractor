@@ -12,8 +12,10 @@ import org.schabi.newpipe.extractor.stream.VideoStream;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
+import java.util.Locale;
 
 import static java.util.Objects.requireNonNull;
 import static junit.framework.TestCase.assertEquals;
@@ -113,6 +115,19 @@ public class MediaCCCStreamExtractorTest {
             final Calendar instance = Calendar.getInstance();
             instance.setTime(new SimpleDateFormat("yyyy-MM-dd").parse("2018-05-11"));
             assertEquals(instance, requireNonNull(extractor.getUploadDate()).date());
+        }
+
+        @Test
+        public void testGetTags() throws ParsingException {
+            List<String> tags = new ArrayList<>();
+            tags.add("gpn18");
+            tags.add("105");
+            assertEquals(tags, extractor.getTags());
+        }
+
+        @Test
+        public void testGetLanguageInfo() throws ParsingException {
+            assertEquals(new Locale("de"), extractor.getLanguageInfo());
         }
     }
 
