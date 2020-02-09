@@ -486,4 +486,14 @@ public abstract class StreamExtractor extends Extractor {
      */
     @Nonnull
     public abstract String getSupportInfo() throws ParsingException;
+
+    /**
+     * The cards of the streams
+     * They are information, such as poll, related video, playlist, channel…
+     * See https://support.google.com/youtube/answer/6140493
+     * @return A list of cards, one card, or {@code null} if there are no cards.
+     * @throws ParsingException
+     */
+    @Nullable
+    public abstract List<Card> getCards() throws ParsingException;
 }

@@ -21,6 +21,8 @@ import org.schabi.newpipe.extractor.stream.*;
 import org.schabi.newpipe.extractor.utils.JsonUtils;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
@@ -276,6 +278,12 @@ public class PeertubeStreamExtractor extends StreamExtractor {
         } catch (ParsingException e) {
             return "";
         }
+    }
+
+    @Nullable
+    @Override
+    public List<Card> getCards() throws ParsingException {
+        return null;
     }
 
     private String getRelatedStreamsUrl(List<String> tags) throws UnsupportedEncodingException {

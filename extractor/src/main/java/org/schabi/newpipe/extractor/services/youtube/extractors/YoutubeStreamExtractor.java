@@ -23,16 +23,7 @@ import org.schabi.newpipe.extractor.localization.TimeAgoPatternsManager;
 import org.schabi.newpipe.extractor.services.youtube.ItagItem;
 import org.schabi.newpipe.extractor.services.youtube.linkHandler.YoutubeChannelLinkHandlerFactory;
 import org.schabi.newpipe.extractor.services.youtube.YoutubeParsingHelper;
-import org.schabi.newpipe.extractor.stream.AudioStream;
-import org.schabi.newpipe.extractor.stream.Description;
-import org.schabi.newpipe.extractor.stream.Frameset;
-import org.schabi.newpipe.extractor.stream.Stream;
-import org.schabi.newpipe.extractor.stream.StreamExtractor;
-import org.schabi.newpipe.extractor.stream.StreamInfoItem;
-import org.schabi.newpipe.extractor.stream.StreamInfoItemsCollector;
-import org.schabi.newpipe.extractor.stream.StreamType;
-import org.schabi.newpipe.extractor.stream.SubtitlesStream;
-import org.schabi.newpipe.extractor.stream.VideoStream;
+import org.schabi.newpipe.extractor.stream.*;
 import org.schabi.newpipe.extractor.utils.Parser;
 import org.schabi.newpipe.extractor.utils.Utils;
 
@@ -1031,5 +1022,29 @@ public class YoutubeStreamExtractor extends StreamExtractor {
     @Override
     public String getSupportInfo() {
         return "";
+    }
+
+    private JsonArray getCardsJson() {
+        try {
+            JsonObject container = playerResponse.getObject("cards").getObject("cardCollectionRenderer");
+            return container.getArray("cards");
+        } catch (NullPointerException e) {
+            return null;
+        }
+    }
+
+    public List<Card> getCards() throws ParsingException {
+        JsonArray cardsArray = getCardsJson();
+        if (cardsArray == null || cardsArray.isEmpty()) return null;
+        List<Card> cards = new ArrayList<>();
+        Card current;
+        for (Object c : cardsArray) {
+            if (c instanceof JsonObject) {
+                final JsonObject item = (JsonObject) c;
+                current = new YoutubeCard(item.getObject("cardRenderer"));
+                if (current.getType() != (Card.INVALID)) cards.add(current);
+            }
+        }
+        return cards;
     }
 }

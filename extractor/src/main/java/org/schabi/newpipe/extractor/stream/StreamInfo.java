@@ -329,6 +329,11 @@ public class StreamInfo extends Info {
         } catch (Exception e) {
             streamInfo.addError(e);
         }
+        try {
+            streamInfo.setCards(extractor.getCards());
+        } catch (Exception e) {
+            streamInfo.addError(e);
+        }
 
         streamInfo.setRelatedStreams(ExtractorHelper.getRelatedVideosOrLogError(streamInfo, extractor));
 
@@ -379,6 +384,7 @@ public class StreamInfo extends Info {
     private String support = "";
     private Locale language = null;
     private List<String> tags = new ArrayList<>();
+    private List<Card> cards = null;
 
     /**
      * Get the stream type
@@ -683,5 +689,13 @@ public class StreamInfo extends Info {
 
     public String getSupportInfo() {
         return this.support;
+    }
+
+    public List<Card> getCards() {
+        return this.cards;
+    }
+
+    public void setCards(List<Card> cards) {
+        this.cards = cards;
     }
 }

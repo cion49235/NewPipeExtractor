@@ -6,6 +6,7 @@ import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -202,5 +203,34 @@ public class Utils {
     // can be used for JsonObjects
     public static boolean isNullOrEmpty(final Map map) {
         return map == null || map.isEmpty();
+    }
+
+    /**
+     * Extract length from a string
+     * Requirements: either minutes:seconds (minutes can be 0),
+     * or hours:minutes:seconds.
+     * (eg seconds > 60, minutes > 60)
+     *
+     * @param str a duration string
+     * @return the length (in seconds)
+     */
+    public static long getLengthFromString(String str) {
+        if (str == null || str.isEmpty()) return -1;
+        String[] duration = str.split(":");
+        if (duration.length == 2) { //minutes:seconds, minutes can be 0
+            return Long.parseLong(duration[0]) * 60 + Long.parseLong(duration[1]);
+        } else if (duration.length == 3) { //hours:minutes:seconds
+            return Long.parseLong(duration[0]) * 3600 + Long.parseLong(duration[1]) * 60 + Long.parseLong(duration[2]);
+        }
+        return -1; //didn't match the requirements
+    }
+
+    public static String removeYoutubeRedirectLink(String url) {
+        String codedUrl = url.replaceAll("https://www.youtube.com/redirect.*&q=", ""); //remove redirect link
+        try {
+            return URLDecoder.decode(codedUrl, StandardCharsets.UTF_8.name()); //decode url, eg replace %3F by ? etc…
+        } catch (UnsupportedEncodingException e) {
+            return codedUrl;
+        }
     }
 }
