@@ -1,6 +1,5 @@
 package org.schabi.newpipe.extractor.services.youtube.stream;
 
-import com.grack.nanojson.JsonWriter;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;

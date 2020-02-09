@@ -284,17 +284,17 @@ public class SoundcloudStreamExtractorDefaultTest {
         }
 
         @Test
-        public void testGetLicence() {
+        public void testGetLicence() throws ParsingException {
             assertEquals("all-rights-reserved", extractor.getLicence());
         }
 
         @Test
-        public void testGetCategory() {
+        public void testGetCategory() throws ParsingException {
             assertEquals("Hip-hop & Rap", extractor.getCategory());
         }
 
         @Test
-        public void testGetTags() {
+        public void testGetTags() throws ParsingException {
             List<String> tags = new ArrayList<>();
             tags.add("SCFirst");
             assertEquals(tags, extractor.getTags());

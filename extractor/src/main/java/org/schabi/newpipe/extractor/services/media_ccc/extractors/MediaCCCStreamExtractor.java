@@ -4,7 +4,6 @@ import com.grack.nanojson.JsonArray;
 import com.grack.nanojson.JsonObject;
 import com.grack.nanojson.JsonParser;
 import com.grack.nanojson.JsonParserException;
-
 import org.schabi.newpipe.extractor.MediaFormat;
 import org.schabi.newpipe.extractor.StreamingService;
 import org.schabi.newpipe.extractor.downloader.Downloader;
@@ -23,13 +22,12 @@ import org.schabi.newpipe.extractor.stream.SubtitlesStream;
 import org.schabi.newpipe.extractor.stream.VideoStream;
 import org.schabi.newpipe.extractor.utils.JsonUtils;
 
+import javax.annotation.Nonnull;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
-
-import javax.annotation.Nonnull;
 
 public class MediaCCCStreamExtractor extends StreamExtractor {
     private JsonObject data;
@@ -283,7 +281,6 @@ public class MediaCCCStreamExtractor extends StreamExtractor {
         return Localization.getLocaleFromThreeLetterCode(data.getString("original_language"));
     }
 
-    @Nonnull
     @Override
     public List<String> getTags() {
         return JsonUtils.getListStringFromJsonArray(data.getArray("tags"));

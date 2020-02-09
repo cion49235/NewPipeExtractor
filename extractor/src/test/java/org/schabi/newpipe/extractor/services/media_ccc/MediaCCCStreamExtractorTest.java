@@ -12,7 +12,10 @@ import org.schabi.newpipe.extractor.stream.VideoStream;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.List;
+import java.util.Locale;
 
 import static java.util.Objects.requireNonNull;
 import static junit.framework.TestCase.assertEquals;
