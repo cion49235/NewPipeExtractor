@@ -1,6 +1,8 @@
 package org.schabi.newpipe.extractor.utils;
 
 import org.schabi.newpipe.extractor.exceptions.ParsingException;
+import org.schabi.newpipe.extractor.localization.AbbreviationHelper;
+import org.schabi.newpipe.extractor.localization.Localization;
 
 import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
@@ -10,10 +12,15 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
+import static org.schabi.newpipe.extractor.localization.AbbreviationHelper.abbreviationSubscribersCount;
+
 public class Utils {
 
     public static final String HTTP = "http://";
     public static final String HTTPS = "https://";
+    private static final String regexNumberWithDotOrComma = "([\\d]+([\\.,][\\d]+)?)";
+    public static final String regexWhiteSpaces = "(\\s| | | )"; //for some reasons \\s isn't enough, so I added
+    //the failing spaces
 
     private Utils() {
         //no instance
@@ -33,6 +40,35 @@ public class Utils {
     }
 
     /**
+     * <p>Remove a number from a string.</p>
+     * <p>Examples:</p>
+     * <ul>
+     *     <li>"123" -&gt; ""</li>
+     *     <li>"1.23K" -&gt; "K"</li>
+     *     <li>"1.23 M" -&gt; " M"</li>
+     * </ul>
+     * Pay attention, it may remove the final dot.
+     * eg: "8,93 хил." -> " хил"
+     *
+     * @param toRemove string to remove a number
+     * @return a string that contains only not a number
+     */
+    public static String removeNumber(String toRemove) {
+        return toRemove.replaceAll("[0-9,.]", "");
+    }
+
+    /**
+     * {@link #removeNonDigitCharacters(String)} but keep dot and comma in between
+     *
+     * @param string
+     * @return a string that only has a number, with maybe a dot or a comma
+     */
+    public static String getNumber(String string) {
+        String notNumber = string.replaceAll(regexNumberWithDotOrComma, "");
+        return string.replaceAll(notNumber, "");
+    }
+
+    /**
      * <p>Convert a mixed number word to a long.</p>
      * <p>Examples:</p>
      * <ul>
@@ -49,21 +85,113 @@ public class Utils {
     public static long mixedNumberWordToLong(String numberWord) throws NumberFormatException, ParsingException {
         String multiplier = "";
         try {
-            multiplier = Parser.matchGroup("[\\d]+([\\.,][\\d]+)?([KMBkmb])+", numberWord, 2);
+            multiplier = Parser.matchGroup("[\\d]+([\\.,][\\d]+)?([KMBkmb万লক億])+", numberWord, 2);
         } catch (ParsingException ignored) {
         }
-        double count = Double.parseDouble(Parser.matchGroup1("([\\d]+([\\.,][\\d]+)?)", numberWord)
+        double count = Double.parseDouble(Parser.matchGroup1(regexNumberWithDotOrComma, numberWord)
                 .replace(",", "."));
         switch (multiplier.toUpperCase()) {
             case "K":
-                return (long) (count * 1e3);
+                return (long) (count * 1000);
+            case "万": //10K, used by east-asian languages
+                return (long) (count * 10_000);
+            case "ল": //100K, used by indo-arabic languages
+                return (long) (count * 100_000);
             case "M":
-                return (long) (count * 1e6);
+                return (long) (count * 1_000_000);
+            case "ক": //10M, used by indo-arabic languages
+                return (long) (count * 10_000_000);
+            case "億": //100M, used by east-asian languages
+                return (long) (count * 100_000_000);
             case "B":
-                return (long) (count * 1e9);
+                return (long) (count * 1_000_000_000);
             default:
                 return (long) (count);
         }
+    }
+
+    public static String removeWhiteSpaces(String s) {
+        return s.replaceAll(regexWhiteSpaces, "");
+    }
+
+    /**
+     * Does the same as {@link #mixedNumberWordToLong(String)}, but for the 80 languages supported by YouTube.
+     *
+     * @param numberWord string to be converted to a long
+     * @param loc        a {@link Localization}
+     * @return a long
+     * @throws ParsingException
+     */
+    public static long mixedNumberWordToLong(String numberWord, Localization loc) throws ParsingException {
+        String langCode = loc.getLanguageCode();
+
+        if (langCode.equals("en")) {
+            return mixedNumberWordToLong(numberWord);
+            //next two: the number has a dot or a space in it, but is a full number (for thousands only)
+        } else if (langCode.equals("eu") && numberWord.split(regexWhiteSpaces).length == 2) {
+            return mixedNumberWordToLong(removeNonDigitCharacters(numberWord));
+        } else if (langCode.equals("sv") && numberWord.matches("\\d+" + regexWhiteSpaces + "\\d+.*")) {
+            return mixedNumberWordToLong(removeNonDigitCharacters(numberWord));
+        }
+        //special case for language written right to left
+        else if (langCode.equals("sw") && numberWord.contains("elfu")) {
+            numberWord = moveAtRight("elfu", numberWord);
+        }
+
+        try { //special case where it gives a number directly for some languages, or with a dot or a comma
+            String maybeAlreadyNumber = removeWhiteSpaces(numberWord).replaceAll("([.,])", "");
+            return Long.parseLong(maybeAlreadyNumber);
+        } catch (NumberFormatException ignored) {
+            //the number had an abbreviation, so it will be handled below
+        }
+
+        String[] abbreviation = getAbbreviation(numberWord, loc);
+        //because it matches "something number something"
+        if (AbbreviationHelper.typeTwo.contains(loc)) {
+            String number = numberWord.replaceAll("[^0-9.,]", "");
+            if (number.endsWith(".")) number = number.substring(0, number.length() - 1);
+            return mixedNumberWordToLong(number + abbreviation[0]);
+        }
+        //the thousand abbreviation for catalan / portugal are the same as the million abbreviation in many more languages
+        else if ((langCode.equals("pt")) && numberWord.contains("mil") || langCode.equals("ca") && numberWord.contains("m")) {
+            abbreviation[0] = "K";
+        }
+
+        if (abbreviation[1].equals("1")) {
+            return mixedNumberWordToLong(getNumber(numberWord) + abbreviation[0]);
+        } else if (abbreviation[1].equals("2")) {
+            return mixedNumberWordToLong(numberWord.replace(removeNumber(numberWord), abbreviation[0]));
+        }
+        throw new ParsingException("Could not extract number from \"" + numberWord + "\", " + loc.toString());
+    }
+
+    public static String moveAtRight(String toMove, String whole) {
+        whole = whole.replace(toMove, "");
+        whole += toMove;
+        return whole;
+    }
+
+    public static String[] getAbbreviation(String numberWord, Localization loc) throws ParsingException {
+        //gets the abbreviation out of a mixed number string
+        //and return {equivalentAbbreviation, type};
+
+        String abbreviation;
+        String nonDigitCharacters = removeNumber(numberWord);
+        String[] words = nonDigitCharacters.split(regexWhiteSpaces);
+        for (String word : words) {
+            abbreviation = abbreviationSubscribersCount.get(word);
+            if (abbreviation != null) {
+                return new String[]{abbreviation, "1"};
+            }
+        }
+        //some languages like japan don't use space everywhere but single characters
+        for (int i = 0; i < nonDigitCharacters.length(); i++) {
+            abbreviation = abbreviationSubscribersCount.get(String.valueOf(nonDigitCharacters.charAt(i)));
+            if (abbreviation != null) {
+                return new String[]{abbreviation, "2"};
+            }
+        }
+        throw new ParsingException("Could not extract number from \"" + numberWord + "\", " + loc.toString());
     }
 
     /**

@@ -190,7 +190,7 @@ public class YoutubeChannelExtractor extends ChannelExtractor {
         final JsonObject c4TabbedHeaderRenderer = initialData.getObject("header").getObject("c4TabbedHeaderRenderer");
         if (c4TabbedHeaderRenderer.has("subscriberCountText")) {
             try {
-                return Utils.mixedNumberWordToLong(getTextFromObject(c4TabbedHeaderRenderer.getObject("subscriberCountText")));
+                return Utils.mixedNumberWordToLong(getTextFromObject(c4TabbedHeaderRenderer.getObject("subscriberCountText")), getExtractorLocalization());
             } catch (NumberFormatException e) {
                 throw new ParsingException("Could not get subscriber count", e);
             }
@@ -277,7 +277,8 @@ public class YoutubeChannelExtractor extends ChannelExtractor {
                 + "&itct=" + clickTrackingParams;
     }
 
-    private void collectStreamsFrom(StreamInfoItemsCollector collector, JsonArray videos) throws ParsingException {
+    private void collectStreamsFrom(StreamInfoItemsCollector collector, JsonArray videos) throws
+            ParsingException {
         collector.reset();
 
         final String uploaderName = getName();
@@ -312,6 +313,8 @@ public class YoutubeChannelExtractor extends ChannelExtractor {
         for (Object tab : tabs) {
             if (((JsonObject) tab).has("tabRenderer")) {
                 if (((JsonObject) tab).getObject("tabRenderer").getString("title", EMPTY_STRING).equals("Videos")) {
+//                if (((JsonObject) tab).getObject("tabRenderer").getObject("endpoint").getObject("commandMetadata")
+//                        .getObject("webCommandMetadata").getString("url").endsWith("videos")) {
                     videoTab = ((JsonObject) tab).getObject("tabRenderer");
                     break;
                 }

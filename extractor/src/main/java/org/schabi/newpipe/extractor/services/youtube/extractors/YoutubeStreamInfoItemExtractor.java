@@ -65,6 +65,10 @@ public class YoutubeStreamInfoItemExtractor implements StreamInfoItemExtractor {
             if (((JsonObject) badge).getObject("metadataBadgeRenderer").getString("label", EMPTY_STRING).equals("LIVE NOW")) {
                 return cachedStreamType = StreamType.LIVE_STREAM;
             }
+
+//            if (((JsonObject) badge).getObject("metadataBadgeRenderer").getString("style").equals("BADGE_STYLE_TYPE_LIVE_NOW")) {
+//                return StreamType.LIVE_STREAM;
+//            }
         }
 
         final String style = videoInfo.getArray("thumbnailOverlays").getObject(0)
@@ -242,6 +246,9 @@ public class YoutubeStreamInfoItemExtractor implements StreamInfoItemExtractor {
             if (((JsonObject) badge).getObject("metadataBadgeRenderer").getString("label", EMPTY_STRING).equals("Premium")) {
                 return true;
             }
+//            if (((JsonObject) badge).getObject("metadataBadgeRenderer").getString("style").equals("BADGE_STYLE_TYPE_RED")) {
+//                return true;
+//            }
         }
         return false;
     }

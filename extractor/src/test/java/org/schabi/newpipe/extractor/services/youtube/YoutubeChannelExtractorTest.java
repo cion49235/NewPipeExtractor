@@ -9,6 +9,7 @@ import org.schabi.newpipe.extractor.exceptions.ContentNotAvailableException;
 import org.schabi.newpipe.extractor.exceptions.ContentNotSupportedException;
 import org.schabi.newpipe.extractor.exceptions.ExtractionException;
 import org.schabi.newpipe.extractor.exceptions.ParsingException;
+import org.schabi.newpipe.extractor.localization.Localization;
 import org.schabi.newpipe.extractor.services.BaseChannelExtractorTest;
 import org.schabi.newpipe.extractor.services.youtube.extractors.YoutubeChannelExtractor;
 
@@ -65,10 +66,15 @@ public class YoutubeChannelExtractorTest {
 
         @BeforeClass
         public static void setUp() throws Exception {
-            NewPipe.init(DownloaderTestImpl.getInstance());
+            NewPipe.init(DownloaderTestImpl.getInstance(), new Localization("ru"));
             extractor = (YoutubeChannelExtractor) YouTube
                     .getChannelExtractor("http://www.youtube.com/user/Gronkh");
             extractor.fetchPage();
+        }
+
+        @Test
+        public void testGetSubscribersCount() throws Exception {
+            assertTrue(extractor.getSubscriberCount() >= 4880000);
         }
 
         /*//////////////////////////////////////////////////////////////////////////

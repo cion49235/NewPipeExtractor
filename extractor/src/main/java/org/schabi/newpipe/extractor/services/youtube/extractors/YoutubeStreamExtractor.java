@@ -56,6 +56,8 @@ import static org.schabi.newpipe.extractor.services.youtube.YoutubeParsingHelper
 import static org.schabi.newpipe.extractor.utils.JsonUtils.EMPTY_STRING;
 import static org.schabi.newpipe.extractor.utils.Utils.isNullOrEmpty;
 
+import static org.schabi.newpipe.extractor.utils.JsonUtils.getString;
+
 /*
  * Created by Christian Schabesberger on 06.08.15.
  *
