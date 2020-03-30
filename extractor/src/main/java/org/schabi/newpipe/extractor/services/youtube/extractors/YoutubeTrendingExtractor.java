@@ -41,6 +41,7 @@ import static org.schabi.newpipe.extractor.services.youtube.linkHandler.YoutubeP
 import static org.schabi.newpipe.extractor.services.youtube.linkHandler.YoutubeParsingHelper.getTextFromObject;
 
 public class YoutubeTrendingExtractor extends KioskExtractor<StreamInfoItem> {
+
     private JsonObject initialData;
 
     public YoutubeTrendingExtractor(StreamingService service,
@@ -51,8 +52,8 @@ public class YoutubeTrendingExtractor extends KioskExtractor<StreamInfoItem> {
 
     @Override
     public void onFetchPage(@Nonnull Downloader downloader) throws IOException, ExtractionException {
-        final String url = getUrl() + "?pbj=1&gl="
-                + getExtractorContentCountry().getCountryCode();
+        System.err.println(getUrl());
+        final String url = getUrl() + "?pbj=1" + "&gl=" + getExtractorContentCountry().getCountryCode();
 
         final JsonArray ajaxJson = getJsonResponse(url, getExtractorLocalization());
 

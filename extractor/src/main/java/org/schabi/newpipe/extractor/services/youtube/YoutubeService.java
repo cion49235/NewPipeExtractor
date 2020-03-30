@@ -37,6 +37,8 @@ import org.schabi.newpipe.extractor.stream.StreamExtractor;
 import org.schabi.newpipe.extractor.subscription.SubscriptionExtractor;
 import org.schabi.newpipe.extractor.suggestion.SuggestionExtractor;
 
+import javax.annotation.Nonnull;
+import java.io.IOException;
 import java.util.List;
 
 import javax.annotation.Nonnull;
@@ -131,21 +133,26 @@ public class YoutubeService extends StreamingService {
 
     @Override
     public KioskList getKioskList() throws ExtractionException {
+        KioskList.KioskExtractorFactory kioskFactory = new KioskList.KioskExtractorFactory() {
+            @Override
+            public KioskExtractor createNewKiosk(StreamingService streamingService, String url, String kioskId) throws ExtractionException, IOException {
+
+                return new YoutubeTrendingExtractor(YoutubeService.this,
+                        new YoutubeTrendingLinkHandlerFactory().fromUrl(url), kioskId);
+            }
+        };
+
         KioskList list = new KioskList(this);
 
         // add kiosks here e.g.:
+        final YoutubeTrendingLinkHandlerFactory h = new YoutubeTrendingLinkHandlerFactory();
         try {
-            list.addKioskEntry(new KioskList.KioskExtractorFactory() {
-                @Override
-                public KioskExtractor createNewKiosk(StreamingService streamingService,
-                                                     String url,
-                                                     String id)
-                        throws ExtractionException {
-                    return new YoutubeTrendingExtractor(YoutubeService.this,
-                            new YoutubeTrendingLinkHandlerFactory().fromUrl(url), id);
-                }
-            }, new YoutubeTrendingLinkHandlerFactory(), "Trending");
-            list.setDefaultKiosk("Trending");
+            list.addKioskEntry(kioskFactory, h, YoutubeTrendingLinkHandlerFactory.TRENDING);
+            list.addKioskEntry(kioskFactory, h, YoutubeTrendingLinkHandlerFactory.GAMING);
+            list.addKioskEntry(kioskFactory, h, YoutubeTrendingLinkHandlerFactory.MOVIES);
+            list.addKioskEntry(kioskFactory, h, YoutubeTrendingLinkHandlerFactory.MUSIC);
+            list.addKioskEntry(kioskFactory, h, YoutubeTrendingLinkHandlerFactory.NEWS);
+            list.setDefaultKiosk(YoutubeTrendingLinkHandlerFactory.TRENDING);
         } catch (Exception e) {
             throw new ExtractionException(e);
         }
