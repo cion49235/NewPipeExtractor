@@ -468,7 +468,7 @@ public abstract class StreamExtractor extends Extractor {
      * The list of tags of the stream.
      * If the tag list is not available you can simply return an empty list.
      *
-     * @return the list of tags of the stream or an empty list.
+     * @return the list of tags of the stream or Collections.emptyList().
      * @throws ParsingException
      */
     @Nonnull

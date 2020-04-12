@@ -1035,7 +1035,7 @@ public class YoutubeStreamExtractor extends StreamExtractor {
         JsonArray tagsArray = playerResponse.getObject("videoDetails").getArray("keywords");
         List<String> tagsList = new ArrayList<>();
         for (Object tag : tagsArray) {
-            tagsList.add((String) tag);
+            tagsList.add(tag.toString());
         }
         return tagsList;
     }

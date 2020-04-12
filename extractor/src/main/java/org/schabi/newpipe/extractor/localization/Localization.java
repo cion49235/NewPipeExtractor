@@ -3,16 +3,15 @@ package org.schabi.newpipe.extractor.localization;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Locale;
+import java.util.*;
 
 public class Localization implements Serializable {
     public static final Localization DEFAULT = new Localization("en", "GB");
 
-    @Nonnull private final String languageCode;
-    @Nullable private final String countryCode;
+    @Nonnull
+    private final String languageCode;
+    @Nullable
+    private final String countryCode;
 
     /**
      * @param localizationCodeList a list of localization code, formatted like {@link #getLocalizationCode()}
@@ -98,5 +97,31 @@ public class Localization implements Serializable {
         int result = languageCode.hashCode();
         result = 31 * result + (countryCode != null ? countryCode.hashCode() : 0);
         return result;
+    }
+
+    /**
+     * Converts a three letter language code (ISO 639-3) to a Locale
+     * in the limit of Java Locale class.
+     * It can also handle 639-2/T but may return a wrong locale.
+     * from https://stackoverflow.com/a/674122/12680950
+     * <p>
+     * It should not be used with 639-2/B, since java already handle it.
+     * (Just use new Locale("an ISO 639-2/B code")).
+     *
+     * @param code a three letter language code
+     * @return the Locale corresponding
+     */
+    public static Locale getLocaleFromThreeLetterCode(String code) {
+        String[] languages = Locale.getISOLanguages();
+        Map<String, Locale> localeMap = new HashMap<>(languages.length);
+        for (String language : languages) {
+            Locale locale = new Locale(language);
+            localeMap.put(locale.getISO3Language(), locale);
+        }
+        if (localeMap.containsKey(code)) {
+            return localeMap.get(code);
+        } else {
+            return new Locale(code.substring(0, 2));
+        }
     }
 }

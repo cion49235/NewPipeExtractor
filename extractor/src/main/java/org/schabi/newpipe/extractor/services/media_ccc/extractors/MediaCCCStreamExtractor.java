@@ -11,8 +11,8 @@ import org.schabi.newpipe.extractor.exceptions.ExtractionException;
 import org.schabi.newpipe.extractor.exceptions.ParsingException;
 import org.schabi.newpipe.extractor.linkhandler.LinkHandler;
 import org.schabi.newpipe.extractor.localization.DateWrapper;
+import org.schabi.newpipe.extractor.localization.Localization;
 import org.schabi.newpipe.extractor.stream.*;
-import org.schabi.newpipe.extractor.utils.JsonUtils;
 
 import javax.annotation.Nonnull;
 import java.io.IOException;
@@ -269,19 +269,19 @@ public class MediaCCCStreamExtractor extends StreamExtractor {
     }
 
     @Override
-    public Locale getLanguageInfo() throws ParsingException {
-        String code = JsonUtils.getString(data, "original_language");
-        code = code.substring(0, 2); //remove the last letter. new Locale (three_letter_code) don't work
-        return new Locale(code);
+    public Locale getLanguageInfo() {
+        return Localization.getLocaleFromThreeLetterCode(data.getString("original_language"));
     }
 
+    @Nonnull
     @Override
     public List<String> getTags() {
-        try {
-            return (List) JsonUtils.getArray(data, "tags");
-        } catch (Exception e) {
-            return Collections.emptyList();
+        JsonArray tagsArray = data.getArray("tags");
+        List<String> tagsList = new ArrayList<>();
+        for (Object tag : tagsArray) {
+            tagsList.add(tag.toString());
         }
+        return tagsList;
     }
 
     @Nonnull
