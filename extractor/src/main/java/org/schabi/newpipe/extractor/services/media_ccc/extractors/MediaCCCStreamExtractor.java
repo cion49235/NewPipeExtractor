@@ -281,6 +281,7 @@ public class MediaCCCStreamExtractor extends StreamExtractor {
         return Localization.getLocaleFromThreeLetterCode(data.getString("original_language"));
     }
 
+    @Nonnull
     @Override
     public List<String> getTags() {
         return JsonUtils.getListStringFromJsonArray(data.getArray("tags"));
