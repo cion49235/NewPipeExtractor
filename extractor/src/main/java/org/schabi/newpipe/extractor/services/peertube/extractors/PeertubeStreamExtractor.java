@@ -265,16 +265,7 @@ public class PeertubeStreamExtractor extends StreamExtractor {
     @Nonnull
     @Override
     public List<String> getTags() {
-        try {
-            JsonArray tagsArray = json.getArray("tags");
-            List<String> tagsList = new ArrayList<>();
-            for (Object tag : tagsArray) {
-                tagsList.add(tag.toString());
-            }
-            return tagsList;
-        } catch (Exception e) {
-            return Collections.emptyList();
-        }
+        return JsonUtils.getListStringFromJsonArray(json.getArray("tags"));
     }
 
     @Nonnull

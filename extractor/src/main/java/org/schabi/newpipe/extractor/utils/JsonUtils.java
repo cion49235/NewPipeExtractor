@@ -100,4 +100,14 @@ public class JsonUtils {
         return result;
     }
 
+    public static List<String> getListStringFromJsonArray(@Nonnull JsonArray array) {
+        List<String> tagsList = new ArrayList<>(array.size());
+        for (Object tag : array) {
+            if (tag instanceof String) {
+                tagsList.add((String) tag);
+            }
+        }
+        return tagsList;
+    }
+
 }

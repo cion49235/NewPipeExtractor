@@ -1,5 +1,8 @@
 package org.schabi.newpipe.extractor.localization;
 
+import edu.umd.cs.findbugs.annotations.NonNull;
+import org.schabi.newpipe.extractor.exceptions.ParsingException;
+
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.io.Serializable;
@@ -89,7 +92,7 @@ public class Localization implements Serializable {
         Localization that = (Localization) o;
 
         if (!languageCode.equals(that.languageCode)) return false;
-        return countryCode != null ? countryCode.equals(that.countryCode) : that.countryCode == null;
+        return Objects.equals(countryCode, that.countryCode);
     }
 
     @Override
@@ -100,28 +103,23 @@ public class Localization implements Serializable {
     }
 
     /**
-     * Converts a three letter language code (ISO 639-3) to a Locale
+     * Converts a three letter language code (ISO 639-2/T) to a Locale
      * in the limit of Java Locale class.
-     * It can also handle 639-2/T but may return a wrong locale.
-     * from https://stackoverflow.com/a/674122/12680950
-     * <p>
-     * It should not be used with 639-2/B, since java already handle it.
-     * (Just use new Locale("an ISO 639-2/B code")).
      *
      * @param code a three letter language code
      * @return the Locale corresponding
      */
-    public static Locale getLocaleFromThreeLetterCode(String code) {
+    public static Locale getLocaleFromThreeLetterCode(@NonNull String code) throws ParsingException {
         String[] languages = Locale.getISOLanguages();
         Map<String, Locale> localeMap = new HashMap<>(languages.length);
         for (String language : languages) {
-            Locale locale = new Locale(language);
+            final Locale locale = new Locale(language);
             localeMap.put(locale.getISO3Language(), locale);
         }
         if (localeMap.containsKey(code)) {
             return localeMap.get(code);
         } else {
-            return new Locale(code.substring(0, 2));
+            throw new ParsingException("Could not get Locale from this three letter language code" + code);
         }
     }
 }

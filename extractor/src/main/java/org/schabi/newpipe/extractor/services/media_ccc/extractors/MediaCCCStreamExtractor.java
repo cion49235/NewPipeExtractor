@@ -13,6 +13,7 @@ import org.schabi.newpipe.extractor.linkhandler.LinkHandler;
 import org.schabi.newpipe.extractor.localization.DateWrapper;
 import org.schabi.newpipe.extractor.localization.Localization;
 import org.schabi.newpipe.extractor.stream.*;
+import org.schabi.newpipe.extractor.utils.JsonUtils;
 
 import javax.annotation.Nonnull;
 import java.io.IOException;
@@ -269,19 +270,14 @@ public class MediaCCCStreamExtractor extends StreamExtractor {
     }
 
     @Override
-    public Locale getLanguageInfo() {
+    public Locale getLanguageInfo() throws ParsingException {
         return Localization.getLocaleFromThreeLetterCode(data.getString("original_language"));
     }
 
     @Nonnull
     @Override
     public List<String> getTags() {
-        JsonArray tagsArray = data.getArray("tags");
-        List<String> tagsList = new ArrayList<>();
-        for (Object tag : tagsArray) {
-            tagsList.add(tag.toString());
-        }
-        return tagsList;
+        return JsonUtils.getListStringFromJsonArray(data.getArray("tags"));
     }
 
     @Nonnull
