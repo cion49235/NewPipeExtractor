@@ -1,7 +1,6 @@
 package org.schabi.newpipe.extractor.localization;
 
-import edu.umd.cs.findbugs.annotations.NonNull;
-
+import javax.annotation.Nonnull;
 import java.io.Serializable;
 import java.util.Calendar;
 
@@ -9,14 +8,14 @@ import java.util.Calendar;
  * A wrapper class that provides a field to describe if the date is precise or just an approximation.
  */
 public class DateWrapper implements Serializable {
-    @NonNull private final Calendar date;
+    @Nonnull private final Calendar date;
     private final boolean isApproximation;
 
-    public DateWrapper(@NonNull Calendar date) {
+    public DateWrapper(@Nonnull Calendar date) {
         this(date, false);
     }
 
-    public DateWrapper(@NonNull Calendar date, boolean isApproximation) {
+    public DateWrapper(@Nonnull Calendar date, boolean isApproximation) {
         this.date = date;
         this.isApproximation = isApproximation;
     }
@@ -24,7 +23,7 @@ public class DateWrapper implements Serializable {
     /**
      * @return the wrapped date.
      */
-    @NonNull
+    @Nonnull
     public Calendar date() {
         return date;
     }

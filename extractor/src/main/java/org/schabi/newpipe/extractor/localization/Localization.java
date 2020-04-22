@@ -1,6 +1,5 @@
 package org.schabi.newpipe.extractor.localization;
 
-import edu.umd.cs.findbugs.annotations.NonNull;
 import org.schabi.newpipe.extractor.exceptions.ParsingException;
 
 import javax.annotation.Nonnull;
@@ -109,7 +108,7 @@ public class Localization implements Serializable {
      * @param code a three letter language code
      * @return the Locale corresponding
      */
-    public static Locale getLocaleFromThreeLetterCode(@NonNull String code) throws ParsingException {
+    public static Locale getLocaleFromThreeLetterCode(@Nonnull String code) throws ParsingException {
         String[] languages = Locale.getISOLanguages();
         Map<String, Locale> localeMap = new HashMap<>(languages.length);
         for (String language : languages) {
