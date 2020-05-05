@@ -248,7 +248,7 @@ public class YoutubeStreamExtractorDefaultTest {
 
         @Test
         public void testGetLicence() throws ParsingException {
-            assertTrue(extractor.getLicence().contains("SME (on behalf of XL Recordings Limited.);"));
+            assertTrue(extractor.getLicence().contains("(on behalf of XL Recordings Limited.);"));
         }
     }
 
