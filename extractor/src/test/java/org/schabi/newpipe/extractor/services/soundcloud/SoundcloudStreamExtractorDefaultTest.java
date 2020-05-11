@@ -227,7 +227,9 @@ public class SoundcloudStreamExtractorDefaultTest {
         @Test
         public void testGetUploadDate() throws ParsingException, ParseException {
             final Calendar instance = Calendar.getInstance();
-            instance.setTime(new SimpleDateFormat("yyyy/MM/dd HH:mm:ss +0000").parse("2019/11/21 22:25:30 +0000"));
+            SimpleDateFormat sdf = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss +0000");
+            sdf.setTimeZone(TimeZone.getTimeZone("GMT"));
+            instance.setTime(sdf.parse("2019/11/21 22:25:30 +0000"));
             assertEquals(instance, requireNonNull(extractor.getUploadDate()).date());
         }
 
