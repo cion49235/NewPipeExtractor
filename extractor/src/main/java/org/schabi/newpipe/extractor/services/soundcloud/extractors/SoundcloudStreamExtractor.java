@@ -280,24 +280,28 @@ public class SoundcloudStreamExtractor extends StreamExtractor {
         return null;
     }
 
+    @Nonnull
     @Override
     public String getHost() throws ParsingException {
         return "";
     }
 
+    @Nonnull
     @Override
     public String getPrivacy() throws ParsingException {
-        return JsonUtils.getString(track, "sharing");
+        return track.getString("sharing");
     }
 
+    @Nonnull
     @Override
     public String getCategory() throws ParsingException {
-        return JsonUtils.getString(track, "genre");
+        return track.getString("genre");
     }
 
+    @Nonnull
     @Override
     public String getLicence() throws ParsingException {
-        return JsonUtils.getString(track, "license");
+        return track.getString("license");
     }
 
     @Override
@@ -308,8 +312,8 @@ public class SoundcloudStreamExtractor extends StreamExtractor {
     @Nonnull
     @Override
     public List<String> getTags() throws ParsingException {
-        String tags_string = track.getString("tag_list");
-        return new ArrayList<>(Arrays.asList(tags_string.split(" ")));
+        final String tags = track.getString("tag_list");
+        return Arrays.asList(tags.split(" "));
     }
 
     @Nonnull
