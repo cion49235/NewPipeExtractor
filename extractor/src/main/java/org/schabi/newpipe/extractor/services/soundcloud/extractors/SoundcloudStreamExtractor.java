@@ -287,6 +287,7 @@ public class SoundcloudStreamExtractor extends StreamExtractor {
         return "";
     }
 
+    @Nonnull
     @Override
     public Privacy getPrivacy() {
         return track.getString("sharing").equals("public") ? Privacy.PUBLIC : Privacy.PRIVATE;
@@ -300,7 +301,6 @@ public class SoundcloudStreamExtractor extends StreamExtractor {
 
     @Nonnull
     @Override
-
     public String getLicence() {
         return track.getString("license");
     }
