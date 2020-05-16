@@ -219,12 +219,7 @@ public class YoutubePlaylistExtractor extends PlaylistExtractor {
 
         for (Object video : videos) {
             if (((JsonObject) video).has("playlistVideoRenderer")) {
-                collector.commit(new YoutubeStreamInfoItemExtractor(((JsonObject) video).getObject("playlistVideoRenderer"), timeAgoParser) {
-                    @Override
-                    public long getViewCount() {
-                        return -1;
-                    }
-                });
+                collector.commit(new YoutubeStreamPlaylistInfoItemExtractor(((JsonObject) video).getObject("playlistVideoRenderer"), timeAgoParser));
             }
         }
     }

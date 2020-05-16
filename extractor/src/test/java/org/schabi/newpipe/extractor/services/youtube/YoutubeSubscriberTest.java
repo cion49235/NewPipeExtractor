@@ -4,6 +4,7 @@ import com.grack.nanojson.JsonArray;
 import com.grack.nanojson.JsonObject;
 import com.grack.nanojson.JsonParser;
 import com.grack.nanojson.JsonParserException;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.schabi.newpipe.DownloaderTestImpl;
 import org.schabi.newpipe.extractor.NewPipe;
@@ -28,7 +29,7 @@ import static org.schabi.newpipe.extractor.utils.Utils.mixedNumberWordToLong;
  * A class that tests abbreviations and subscriber counts for all the languages YouTube supports.
  * Create public JsonObject getInitialData() {return this.initialData;} in YoutubeChannelExtractor to test
  */
-//@Ignore("Should be ran manually from time to time, as it's too time consuming.")
+@Ignore("Should be ran manually from time to time, as it's too time consuming.")
 public class YoutubeSubscriberTest {
 
     private static final String guideBuilderUrl = "https://www.youtube.com/feed/guide_builder?pbj=1";
