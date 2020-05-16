@@ -312,9 +312,8 @@ public class YoutubeChannelExtractor extends ChannelExtractor {
 
         for (Object tab : tabs) {
             if (((JsonObject) tab).has("tabRenderer")) {
-                if (((JsonObject) tab).getObject("tabRenderer").getString("title", EMPTY_STRING).equals("Videos")) {
-//                if (((JsonObject) tab).getObject("tabRenderer").getObject("endpoint").getObject("commandMetadata")
-//                        .getObject("webCommandMetadata").getString("url").endsWith("videos")) {
+                if (((JsonObject) tab).getObject("tabRenderer").getObject("endpoint").getObject("commandMetadata")
+                        .getObject("webCommandMetadata").getString("url").endsWith("videos")) {
                     videoTab = ((JsonObject) tab).getObject("tabRenderer");
                     break;
                 }
