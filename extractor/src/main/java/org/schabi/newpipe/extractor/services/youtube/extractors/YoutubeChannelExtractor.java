@@ -324,15 +324,6 @@ public class YoutubeChannelExtractor extends ChannelExtractor {
             throw new ContentNotSupportedException("This channel has no Videos tab");
         }
 
-        final String messageRendererText = getTextFromObject(videoTab.getObject("content")
-                .getObject("sectionListRenderer").getArray("contents").getObject(0)
-                .getObject("itemSectionRenderer").getArray("contents").getObject(0)
-                .getObject("messageRenderer").getObject("text"));
-        if (messageRendererText != null
-                && messageRendererText.equals("This channel has no videos.")) {
-            return null;
-        }
-
         this.videoTab = videoTab;
         return videoTab;
     }
