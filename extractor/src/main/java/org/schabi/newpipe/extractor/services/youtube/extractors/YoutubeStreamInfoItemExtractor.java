@@ -62,13 +62,9 @@ public class YoutubeStreamInfoItemExtractor implements StreamInfoItemExtractor {
 
         final JsonArray badges = videoInfo.getArray("badges");
         for (Object badge : badges) {
-            if (((JsonObject) badge).getObject("metadataBadgeRenderer").getString("label", EMPTY_STRING).equals("LIVE NOW")) {
+            if (((JsonObject) badge).getObject("metadataBadgeRenderer").getString("style", EMPTY_STRING).equals("BADGE_STYLE_TYPE_LIVE_NOW")) {
                 return cachedStreamType = StreamType.LIVE_STREAM;
             }
-
-//            if (((JsonObject) badge).getObject("metadataBadgeRenderer").getString("style").equals("BADGE_STYLE_TYPE_LIVE_NOW")) {
-//                return StreamType.LIVE_STREAM;
-//            }
         }
 
         final String style = videoInfo.getArray("thumbnailOverlays").getObject(0)
@@ -243,12 +239,9 @@ public class YoutubeStreamInfoItemExtractor implements StreamInfoItemExtractor {
     private boolean isPremium() {
         JsonArray badges = videoInfo.getArray("badges");
         for (Object badge : badges) {
-            if (((JsonObject) badge).getObject("metadataBadgeRenderer").getString("label", EMPTY_STRING).equals("Premium")) {
+            if (((JsonObject) badge).getObject("metadataBadgeRenderer").getString("style", EMPTY_STRING).equals("BADGE_STYLE_TYPE_RED")) {
                 return true;
             }
-//            if (((JsonObject) badge).getObject("metadataBadgeRenderer").getString("style").equals("BADGE_STYLE_TYPE_RED")) {
-//                return true;
-//            }
         }
         return false;
     }
