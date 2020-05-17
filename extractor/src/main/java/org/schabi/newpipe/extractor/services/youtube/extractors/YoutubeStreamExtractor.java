@@ -3,7 +3,6 @@ package org.schabi.newpipe.extractor.services.youtube.extractors;
 import com.grack.nanojson.JsonArray;
 import com.grack.nanojson.JsonObject;
 import com.grack.nanojson.JsonParser;
-
 import org.mozilla.javascript.Context;
 import org.mozilla.javascript.Function;
 import org.mozilla.javascript.ScriptableObject;
@@ -21,27 +20,18 @@ import org.schabi.newpipe.extractor.localization.Localization;
 import org.schabi.newpipe.extractor.localization.TimeAgoParser;
 import org.schabi.newpipe.extractor.localization.TimeAgoPatternsManager;
 import org.schabi.newpipe.extractor.services.youtube.ItagItem;
-import org.schabi.newpipe.extractor.services.youtube.linkHandler.YoutubeChannelLinkHandlerFactory;
 import org.schabi.newpipe.extractor.services.youtube.YoutubeParsingHelper;
+import org.schabi.newpipe.extractor.services.youtube.linkHandler.YoutubeChannelLinkHandlerFactory;
 import org.schabi.newpipe.extractor.stream.*;
 import org.schabi.newpipe.extractor.utils.Parser;
 import org.schabi.newpipe.extractor.utils.Utils;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Collections;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import java.util.*;
 
 import static org.schabi.newpipe.extractor.services.youtube.YoutubeParsingHelper.*;
 import static org.schabi.newpipe.extractor.utils.JsonUtils.EMPTY_STRING;
@@ -138,12 +128,14 @@ public class YoutubeStreamExtractor extends StreamExtractor {
                 TimeAgoParser timeAgoParser = TimeAgoPatternsManager.getTimeAgoParserFor(Localization.fromLocalizationCode("en"));
                 Calendar parsedTime = timeAgoParser.parse(time).date();
                 return new SimpleDateFormat("yyyy-MM-dd").format(parsedTime.getTime());
-            } catch (Exception ignored) {}
+            } catch (Exception ignored) {
+            }
 
             try { // Premiered Feb 21, 2020
                 Date d = new SimpleDateFormat("MMM dd, YYYY", Locale.ENGLISH).parse(time);
                 return new SimpleDateFormat("yyyy-MM-dd").format(d.getTime());
-            } catch (Exception ignored) {}
+            } catch (Exception ignored) {
+            }
         }
 
         try {
@@ -151,7 +143,8 @@ public class YoutubeStreamExtractor extends StreamExtractor {
             Date d = new SimpleDateFormat("dd MMM yyyy", Locale.ENGLISH).parse(
                     getTextFromObject(getVideoPrimaryInfoRenderer().getObject("dateText")));
             return new SimpleDateFormat("yyyy-MM-dd").format(d);
-        } catch (Exception ignored) {}
+        } catch (Exception ignored) {
+        }
         throw new ParsingException("Could not get upload date");
     }
 
@@ -238,7 +231,7 @@ public class YoutubeStreamExtractor extends StreamExtractor {
     public long getViewCount() throws ParsingException {
         assertPageFetched();
         String views = getTextFromObject(getVideoPrimaryInfoRenderer().getObject("viewCount")
-                    .getObject("videoViewCountRenderer").getObject("viewCount"));
+                .getObject("videoViewCountRenderer").getObject("viewCount"));
 
         if (isNullOrEmpty(views)) {
             views = playerResponse.getObject("videoDetails").getString("viewCount");
@@ -302,9 +295,9 @@ public class YoutubeStreamExtractor extends StreamExtractor {
     public String getUploaderUrl() throws ParsingException {
         assertPageFetched();
 
-            String uploaderUrl = getUrlFromNavigationEndpoint(getVideoSecondaryInfoRenderer()
-                    .getObject("owner").getObject("videoOwnerRenderer").getObject("navigationEndpoint"));
-            if (uploaderUrl != null && !uploaderUrl.isEmpty()) return uploaderUrl;
+        String uploaderUrl = getUrlFromNavigationEndpoint(getVideoSecondaryInfoRenderer()
+                .getObject("owner").getObject("videoOwnerRenderer").getObject("navigationEndpoint"));
+        if (uploaderUrl != null && !uploaderUrl.isEmpty()) return uploaderUrl;
 
 
         String uploaderId = playerResponse.getObject("videoDetails").getString("channelId");
@@ -319,7 +312,7 @@ public class YoutubeStreamExtractor extends StreamExtractor {
     public String getUploaderName() throws ParsingException {
         assertPageFetched();
         String uploaderName = getTextFromObject(getVideoSecondaryInfoRenderer().getObject("owner")
-                    .getObject("videoOwnerRenderer").getObject("title"));
+                .getObject("videoOwnerRenderer").getObject("title"));
 
         if (isNullOrEmpty(uploaderName)) {
             uploaderName = playerResponse.getObject("videoDetails").getString("author");
@@ -929,7 +922,8 @@ public class YoutubeStreamExtractor extends StreamExtractor {
 
                         urlAndItags.put(streamUrl, itagItem);
                     }
-                } catch (UnsupportedEncodingException ignored) {}
+                } catch (UnsupportedEncodingException ignored) {
+                }
             }
         }
 
@@ -1025,17 +1019,13 @@ public class YoutubeStreamExtractor extends StreamExtractor {
     }
 
     private JsonArray getCardsJson() {
-        try {
-            JsonObject container = playerResponse.getObject("cards").getObject("cardCollectionRenderer");
-            return container.getArray("cards");
-        } catch (NullPointerException e) {
-            return null;
-        }
+        JsonObject container = playerResponse.getObject("cards").getObject("cardCollectionRenderer");
+        return container.has("cards") ? container.getArray("cards") : null;
     }
 
     public List<Card> getCards() throws ParsingException {
         JsonArray cardsArray = getCardsJson();
-        if (cardsArray == null || cardsArray.isEmpty()) return null;
+        if (isNullOrEmpty(cardsArray)) return null;
         List<Card> cards = new ArrayList<>();
         Card current;
         for (Object c : cardsArray) {

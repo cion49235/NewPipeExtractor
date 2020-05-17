@@ -187,43 +187,29 @@ public class YoutubeCard extends Card {
     }
 
     private void fetchTypeAndTitle() {
-        //fetch both title & type. If we have a NPE, it means the object doesn't exist & we move onto the next type.
-        try {
-            JsonObject pollInfo = content.getObject("pollRenderer").getObject("question");
-            this.type = POLL;
-            this.title = pollInfo.getString(SIMPLE_TEXT);
+        if (content.has("pollRenderer")) {
+            type = POLL;
+            title = content.getObject("pollRenderer").getObject("question").getString(SIMPLE_TEXT);
             return;
-        } catch (NullPointerException ignored) {
-        }
-        try {
-            JsonObject videoInfo = content.getObject("videoInfoCardContentRenderer").getObject("videoTitle");
+        } else if (content.has("videoInfoCardContentRenderer")) {
             type = VIDEO;
-            this.title = videoInfo.getString(SIMPLE_TEXT);
+            title = content.getObject("videoInfoCardContentRenderer").getObject("videoTitle").getString(SIMPLE_TEXT);
             return;
-        } catch (NullPointerException ignored) {
-        }
-        try {
-            JsonObject playlistInfo = content.getObject("playlistInfoCardContentRenderer").getObject("playlistTitle");
+        } else if (content.has("playlistInfoCardContentRenderer")) {
             type = PLAYLIST;
-            this.title = playlistInfo.getString(SIMPLE_TEXT);
+            title = content.getObject("playlistInfoCardContentRenderer").getObject("playlistTitle").getString(SIMPLE_TEXT);
             return;
-        } catch (NullPointerException ignored) {
-        }
-        try {
-            JsonObject linkInfo = content.getObject("simpleCardContentRenderer").getObject("title");
+        } else if (content.has("simpleCardContentRenderer")) {
             type = LINK;
-            this.title = linkInfo.getString(SIMPLE_TEXT);
+            title = content.getObject("simpleCardContentRenderer").getObject("title").getString(SIMPLE_TEXT);
             return;
-        } catch (NullPointerException ignored) {
-        }
-        try {
-            JsonObject channelInfo = content.getObject("collaboratorInfoCardContentRenderer").getObject("customText");
+        } else if (content.has("collaboratorInfoCardContentRenderer")) {
             type = CHANNEL;
-            this.title = channelInfo.getString(SIMPLE_TEXT);
+            title = content.getObject("collaboratorInfoCardContentRenderer").getObject("customText").getString(SIMPLE_TEXT);
             return;
-        } catch (NullPointerException ignored) {
+        } else {
+            type = INVALID;
         }
 
-        type = INVALID;
     }
 }
