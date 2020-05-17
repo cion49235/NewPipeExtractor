@@ -157,12 +157,15 @@ public class YoutubeStreamExtractor extends StreamExtractor {
             } catch (Exception ignored) {}
         }
 
-        try {
-            // TODO: this parses English formatted dates only, we need a better approach to parse the textual date
-            Date d = new SimpleDateFormat("dd MMM yyyy", Locale.ENGLISH).parse(
-                    getTextFromObject(getVideoPrimaryInfoRenderer().getObject("dateText")));
-            return new SimpleDateFormat("yyyy-MM-dd").format(d);
-        } catch (Exception ignored) {}
+        if (getExtractorLocalization().equals(Localization.fromLocalizationCode("en-GB"))) {
+            // TODO: find how to parse any short date
+            //  (i.e. day + shortened month + year, in no particular order) based on localisation
+            try {
+                Date d = new SimpleDateFormat("dd MMM yyyy", Locale.ENGLISH).parse(
+                        getTextFromObject(getVideoPrimaryInfoRenderer().getObject("dateText")));
+                return new SimpleDateFormat("yyyy-MM-dd").format(d);
+            } catch (Exception ignored) {}
+        }
         throw new ParsingException("Could not get upload date");
     }
 

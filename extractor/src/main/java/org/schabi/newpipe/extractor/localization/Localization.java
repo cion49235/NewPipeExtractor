@@ -3,10 +3,7 @@ package org.schabi.newpipe.extractor.localization;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Locale;
+import java.util.*;
 
 public class Localization implements Serializable {
     public static final Localization DEFAULT = new Localization("en", "GB");
@@ -90,7 +87,7 @@ public class Localization implements Serializable {
         Localization that = (Localization) o;
 
         if (!languageCode.equals(that.languageCode)) return false;
-        return countryCode != null ? countryCode.equals(that.countryCode) : that.countryCode == null;
+        return Objects.equals(countryCode, that.countryCode);
     }
 
     @Override
