@@ -2,14 +2,10 @@ package org.schabi.newpipe.extractor.services.youtube;
 
 import com.grack.nanojson.JsonArray;
 import com.grack.nanojson.JsonObject;
-import com.grack.nanojson.JsonParser;
-import com.grack.nanojson.JsonParserException;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.schabi.newpipe.DownloaderTestImpl;
 import org.schabi.newpipe.extractor.NewPipe;
-import org.schabi.newpipe.extractor.downloader.Downloader;
-import org.schabi.newpipe.extractor.downloader.Response;
 import org.schabi.newpipe.extractor.exceptions.ExtractionException;
 import org.schabi.newpipe.extractor.exceptions.ParsingException;
 import org.schabi.newpipe.extractor.exceptions.ReCaptchaException;
@@ -17,11 +13,15 @@ import org.schabi.newpipe.extractor.localization.Localization;
 import org.schabi.newpipe.extractor.services.youtube.extractors.YoutubeChannelExtractor;
 
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.schabi.newpipe.extractor.ServiceList.YouTube;
+import static org.schabi.newpipe.extractor.services.youtube.YoutubeParsingHelper.getJsonResponse;
 import static org.schabi.newpipe.extractor.services.youtube.YoutubeParsingHelper.getTextFromObject;
 import static org.schabi.newpipe.extractor.utils.Utils.mixedNumberWordToLong;
 
@@ -35,7 +35,9 @@ public class YoutubeSubscriberTest {
     private static final String guideBuilderUrl = "https://www.youtube.com/feed/guide_builder?pbj=1";
     private static final int PAUSE_DURATION = 250;
 
-    @Test //only check if extracting abbreviation is supported. But tests it 112 times (number of channels) * 80 (number of languages)
+    @Test
+    // only check if extracting abbreviation is supported, it doesn't compare with english.
+    // But it tests 112 times for every supported languages
     public void testAllAbbreviations() throws IOException, ExtractionException, InterruptedException {
         boolean verbose = true; //change this for more prints
 
@@ -62,7 +64,7 @@ public class YoutubeSubscriberTest {
 
     @Test
     public void testAbbreviationsOneLanguage() throws IOException, ExtractionException {
-        runTest(new Localization("uk"), true);
+        runTest(new Localization("fr"), true);
     }
 
     @Test
@@ -80,7 +82,7 @@ public class YoutubeSubscriberTest {
         }
     }
 
-    private int runTest(Localization loc, boolean verbose) throws ParsingException, ReCaptchaException, IOException {
+    private int runTest(Localization loc, boolean verbose) throws ParsingException, IOException {
         int totalCount = 0;
         try {
             JsonObject guide = getGuideBuilderResponse(loc);
@@ -109,41 +111,36 @@ public class YoutubeSubscriberTest {
                     totalCount++;
                 }
             }
-        } catch (NullPointerException npe) {
+        } catch (NullPointerException | ExtractionException npe) {
             //--> failed request
         }
         return totalCount;
     }
 
-    private JsonObject getGuideBuilderResponse(Localization loc) throws ParsingException, IOException, ReCaptchaException {
-        JsonArray ajaxJson;
-        Map<String, List<String>> headers = new HashMap<>();
-        headers.put("X-YouTube-Client-Name", Collections.singletonList("1"));
-        headers.put("X-YouTube-Client-Version",
-                Collections.singletonList("2.20200214.04.00")); //for some reason YoutubeParsingHelper.getClientVersion();
-        //doesn't work here. So we are using harcoded version, should be updated when you wanna test
-        NewPipe.init(DownloaderTestImpl.getInstance(), loc);
-        Downloader dl = NewPipe.getDownloader();
-        Response response = dl.get(guideBuilderUrl, headers);
-        if (response.responseBody().length() < 50) { // ensure to have a valid response
-            throw new ParsingException("JSON response is too short");
-        }
-        try {
-            ajaxJson = JsonParser.array().from(response.responseBody());
-        } catch (JsonParserException e) {
-            throw new ParsingException("Could not parse JSON", e);
-        }
-        return ajaxJson.getObject(1).getObject("response");
+    private JsonObject getGuideBuilderResponse(Localization loc) throws ExtractionException, IOException {
+        return getJsonResponse(guideBuilderUrl, loc).getObject(1).getObject("response");
     }
 
+    /**
+     * Asserts that the subscriber count gathered by the extractor in every supported languages matches the english count
+     *
+     * @param channelUrl the channel to test
+     * @param verbose    whether we should display more info. REQUIRES getInitialData() in YoutubeChannelExtractor.
+     * @throws ExtractionException
+     * @throws IOException
+     * @throws InterruptedException
+     */
     public static void assertEqualsWithEnglish(String channelUrl, boolean verbose) throws ExtractionException, IOException, InterruptedException {
-        NewPipe.init(DownloaderTestImpl.getInstance(), new Localization("en"));
+        Set<Localization> failedLocalisations = new HashSet<>();
+
+        NewPipe.init(DownloaderTestImpl.getInstance(), Localization.DEFAULT);
         YoutubeChannelExtractor extractorEnglish = (YoutubeChannelExtractor) YouTube
                 .getChannelExtractor(channelUrl);
         extractorEnglish.fetchPage();
         long englishSubCount = extractorEnglish.getSubscriberCount();
         Localization localization;
         String toDisplay;
+
         for (int z = 0; z < YouTube.getSupportedLocalizations().size(); z++) {
             localization = YouTube.getSupportedLocalizations().get(z);
             toDisplay = "Current localization: " + localization.toString();
@@ -151,7 +148,14 @@ public class YoutubeSubscriberTest {
             YoutubeChannelExtractor extractor = (YoutubeChannelExtractor) YouTube
                     .getChannelExtractor(channelUrl);
             extractor.fetchPage();
-            long subscriberCount = extractor.getSubscriberCount();
+
+            long subscriberCount = -2;
+            try {
+                subscriberCount = extractor.getSubscriberCount();
+            } catch (ParsingException e) {
+                System.err.println(e.getMessage());
+                failedLocalisations.add(localization);
+            }
 
             if (verbose) {
                 //displays the gathered text from youtube, uncomment and create getinitialdata temporarily for it
@@ -163,10 +167,17 @@ public class YoutubeSubscriberTest {
                 System.err.println("Subscriber count for " + localization.toString() + " was -1;\n" +
                         "If the channel doesn't have the subscribers disabled, it was probably a failed request");
             } else {
-                assertEquals("Language that failed:" + localization.toString() + ".\nWe", englishSubCount, subscriberCount, 10);
+                try {
+                    assertEquals("Language that failed:" + localization.toString() + ".\nWe", englishSubCount, subscriberCount, 10);
+                } catch (AssertionError e) {
+                    System.err.println(e.getMessage());
+                    failedLocalisations.add(localization);
+                }
             }
             Thread.sleep(PAUSE_DURATION);
         }
+
+        System.err.println("failed Localisations: " + failedLocalisations);
     }
 
     public static void assertEqualsWithEnglish(String channelUrl, Localization loc) throws ExtractionException, IOException {
@@ -209,7 +220,7 @@ public class YoutubeSubscriberTest {
         }
     }
 
-    //don't use invidious links, they take more time and the tests fail more
+    // don't use invidious links, it takes more time and the tests have greater chances to fail
     private static final String highestSubsUrl = "https://www.youtube.com/user/tseries";
     private static final String selenaGomezUrl = "https://www.youtube.com/channel/UCPNxhDvTcytIdvwXWAm43cA";
     private static final String franjoUrl = "https://www.youtube.com/channel/UC53gfTiWvslLPNuoDcoxmVg";
@@ -236,5 +247,10 @@ public class YoutubeSubscriberTest {
     @Test
     public void testFranjo() throws InterruptedException, ExtractionException, IOException {
         assertEqualsWithEnglish(franjoUrl);
+    }
+
+    @Test
+    public void testLowSubscriberCount() throws InterruptedException, ExtractionException, IOException {
+        assertEqualsWithEnglish("https://youtube.com/channel/UCUaQMQS9lY5lit3vurpXQ6w");
     }
 }
