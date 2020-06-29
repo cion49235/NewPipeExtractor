@@ -33,7 +33,6 @@ import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 
@@ -389,8 +388,19 @@ public class PeertubeStreamExtractor extends StreamExtractor {
     }
 
     @Override
-    public String getPrivacy() throws ParsingException {
-        return JsonUtils.getString(json, "privacy.label");
+    public Privacy getPrivacy() {
+        switch (json.getObject("privacy").getInt("id")) {
+            case 1:
+                return Privacy.PUBLIC;
+            case 2:
+                return Privacy.UNLISTED;
+            case 3:
+                return Privacy.PRIVATE;
+            case 4:
+                return Privacy.INTERNAL;
+            default:
+                return null;
+        }
     }
 
     @Override

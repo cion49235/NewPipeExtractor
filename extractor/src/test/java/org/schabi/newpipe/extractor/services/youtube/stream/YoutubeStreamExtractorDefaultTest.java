@@ -17,9 +17,7 @@ import org.schabi.newpipe.extractor.stream.StreamInfoItemsCollector;
 import org.schabi.newpipe.extractor.stream.StreamType;
 import org.schabi.newpipe.extractor.stream.VideoStream;
 import org.schabi.newpipe.extractor.utils.Utils;
-import org.schabi.newpipe.extractor.utils.UtilsTest;
 
-import java.io.IOException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
@@ -232,13 +230,13 @@ public class YoutubeStreamExtractorDefaultTest {
         }
 
         @Test
-        public void testGetCategory() throws ParsingException {
+        public void testGetCategory() {
             assertEquals("Music", extractor.getCategory());
         }
 
         @Test
-        public void testGetPrivacy() throws ParsingException {
-            assertEquals("Public", extractor.getPrivacy());
+        public void testGetPrivacy() {
+            assertEquals(StreamExtractor.Privacy.PUBLIC, extractor.getPrivacy());
         }
 
         @Test
@@ -247,7 +245,7 @@ public class YoutubeStreamExtractorDefaultTest {
         }
 
         @Test
-        public void testGetLicence() throws ParsingException {
+        public void testGetLicence() {
             assertTrue(extractor.getLicence().contains("(on behalf of XL Recordings Limited.);"));
         }
     }
@@ -277,7 +275,7 @@ public class YoutubeStreamExtractorDefaultTest {
         }
 
         @Test
-        public void testGetLicence() throws ParsingException, IOException {
+        public void testGetLicence() {
             assertEmpty(extractor.getLicence());
         }
     }
@@ -369,8 +367,8 @@ public class YoutubeStreamExtractorDefaultTest {
         }
 
         @Test
-        public void testGetUnlisted() throws Exception {
-            assertEquals("Unlisted", extractor.getPrivacy());
+        public void testGetUnlisted() {
+            assertEquals(StreamExtractor.Privacy.UNLISTED, extractor.getPrivacy());
         }
     }
 }

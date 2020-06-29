@@ -24,12 +24,15 @@ import org.schabi.newpipe.extractor.stream.StreamInfoItemsCollector;
 import org.schabi.newpipe.extractor.stream.StreamType;
 import org.schabi.newpipe.extractor.stream.SubtitlesStream;
 import org.schabi.newpipe.extractor.stream.VideoStream;
-import org.schabi.newpipe.extractor.utils.JsonUtils;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.Locale;
 
 import javax.annotation.Nonnull;
 
@@ -282,43 +285,42 @@ public class SoundcloudStreamExtractor extends StreamExtractor {
 
     @Nonnull
     @Override
-    public String getHost() throws ParsingException {
+    public String getHost() {
         return "";
     }
 
-    @Nonnull
     @Override
-    public String getPrivacy() throws ParsingException {
-        return track.getString("sharing");
+    public Privacy getPrivacy() {
+        return track.getString("sharing").equals("public") ? Privacy.PUBLIC : Privacy.PRIVATE;
     }
 
     @Nonnull
     @Override
-    public String getCategory() throws ParsingException {
+    public String getCategory() {
         return track.getString("genre");
     }
 
     @Nonnull
     @Override
-    public String getLicence() throws ParsingException {
+    public String getLicence() {
         return track.getString("license");
     }
 
     @Override
-    public Locale getLanguageInfo() throws ParsingException {
+    public Locale getLanguageInfo() {
         return null;
     }
 
     @Nonnull
     @Override
-    public List<String> getTags() throws ParsingException {
+    public List<String> getTags() {
         final String tags = track.getString("tag_list");
         return Arrays.asList(tags.split(" "));
     }
 
     @Nonnull
     @Override
-    public String getSupportInfo() throws ParsingException {
+    public String getSupportInfo() {
         return "";
     }
 }

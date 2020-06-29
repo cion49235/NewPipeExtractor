@@ -18,11 +18,13 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.TimeZone;
 import java.util.List;
+import java.util.TimeZone;
 
 import static java.util.Objects.requireNonNull;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 import static org.schabi.newpipe.extractor.ExtractorAsserts.assertIsSecureUrl;
 import static org.schabi.newpipe.extractor.ServiceList.SoundCloud;
 
@@ -139,22 +141,22 @@ public class SoundcloudStreamExtractorDefaultTest {
         }
 
         @Test
-        public void testGetPrivacy() throws ParsingException {
-            assertEquals("public", extractor.getPrivacy());
+        public void testGetPrivacy() {
+            assertEquals(StreamExtractor.Privacy.PUBLIC, extractor.getPrivacy());
         }
 
         @Test
-        public void testGetLicence() throws ParsingException {
+        public void testGetLicence() {
             assertEquals("all-rights-reserved", extractor.getLicence());
         }
 
         @Test
-        public void testGetCategory() throws ParsingException {
+        public void testGetCategory() {
             assertEquals("", extractor.getCategory());
         }
 
         @Test
-        public void testGetTags() throws ParsingException, IOException {
+        public void testGetTags() {
             List<String> tags = new ArrayList<>();
             tags.add("TPLT");
             tags.add("UZI");
@@ -209,12 +211,12 @@ public class SoundcloudStreamExtractorDefaultTest {
         }
 
         @Test
-        public void testGetLength() throws ParsingException {
+        public void testGetLength() {
             assertEquals(223, extractor.getLength());
         }
 
         @Test
-        public void testGetViewCount() throws ParsingException {
+        public void testGetViewCount() {
             assertTrue(Long.toString(extractor.getViewCount()),
                     extractor.getViewCount() > 39000000);
         }
@@ -234,18 +236,18 @@ public class SoundcloudStreamExtractorDefaultTest {
         }
 
         @Test
-        public void testGetUploaderUrl() throws ParsingException {
+        public void testGetUploaderUrl() {
             assertIsSecureUrl(extractor.getUploaderUrl());
             assertEquals("https://soundcloud.com/ynwmelly", extractor.getUploaderUrl());
         }
 
         @Test
-        public void testGetThumbnailUrl() throws ParsingException {
+        public void testGetThumbnailUrl() {
             assertIsSecureUrl(extractor.getThumbnailUrl());
         }
 
         @Test
-        public void testGetUploaderAvatarUrl() throws ParsingException {
+        public void testGetUploaderAvatarUrl() {
             assertIsSecureUrl(extractor.getUploaderAvatarUrl());
         }
 
@@ -255,7 +257,7 @@ public class SoundcloudStreamExtractorDefaultTest {
         }
 
         @Test
-        public void testStreamType() throws ParsingException {
+        public void testStreamType() {
             assertTrue(extractor.getStreamType() == StreamType.AUDIO_STREAM);
         }
 
@@ -277,22 +279,22 @@ public class SoundcloudStreamExtractorDefaultTest {
         }
 
         @Test
-        public void testGetPrivacy() throws ParsingException {
-            assertEquals("public", extractor.getPrivacy());
+        public void testGetPrivacy() {
+            assertEquals(StreamExtractor.Privacy.PUBLIC, extractor.getPrivacy());
         }
 
         @Test
-        public void testGetLicence() throws ParsingException {
+        public void testGetLicence() {
             assertEquals("all-rights-reserved", extractor.getLicence());
         }
 
         @Test
-        public void testGetCategory() throws ParsingException {
+        public void testGetCategory() {
             assertEquals("Hip-hop & Rap", extractor.getCategory());
         }
 
         @Test
-        public void testGetTags() throws ParsingException, IOException {
+        public void testGetTags() {
             List<String> tags = new ArrayList<>();
             tags.add("SCFirst");
             assertEquals(tags, extractor.getTags());

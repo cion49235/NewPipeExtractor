@@ -30,12 +30,13 @@ import org.schabi.newpipe.extractor.linkhandler.LinkHandler;
 import org.schabi.newpipe.extractor.localization.DateWrapper;
 import org.schabi.newpipe.extractor.utils.Parser;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
+
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 /**
  * Scrapes information from a video/audio streaming service (eg, YouTube).
@@ -429,8 +430,7 @@ public abstract class StreamExtractor extends Extractor {
      * @return the privacy of the stream or an empty String.
      * @throws ParsingException
      */
-    @Nonnull
-    public abstract String getPrivacy() throws ParsingException;
+    public abstract Privacy getPrivacy() throws ParsingException;
 
     /**
      * The name of the category of the stream.
@@ -486,4 +486,11 @@ public abstract class StreamExtractor extends Extractor {
      */
     @Nonnull
     public abstract String getSupportInfo() throws ParsingException;
+
+    public enum Privacy {
+        PUBLIC,
+        UNLISTED,
+        PRIVATE,
+        INTERNAL
+    }
 }
