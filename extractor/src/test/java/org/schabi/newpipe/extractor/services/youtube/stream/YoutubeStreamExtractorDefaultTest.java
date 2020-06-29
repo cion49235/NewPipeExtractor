@@ -245,7 +245,6 @@ public class YoutubeStreamExtractorDefaultTest {
 
         @Test
         public void testGetLicence() {
-
             assertEquals("YouTube licence", extractor.getLicence());
         }
     }

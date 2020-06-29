@@ -284,12 +284,12 @@ public class SoundcloudStreamExtractorDefaultTest {
         }
 
         @Test
-        public void testGetLicence() throws ParsingException {
+        public void testGetLicence() {
             assertEquals("all-rights-reserved", extractor.getLicence());
         }
 
         @Test
-        public void testGetCategory() throws ParsingException {
+        public void testGetCategory() {
             assertEquals("Hip-hop & Rap", extractor.getCategory());
         }
 
