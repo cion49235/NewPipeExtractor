@@ -1,5 +1,6 @@
 package org.schabi.newpipe.extractor.services.youtube.stream;
 
+import com.grack.nanojson.JsonWriter;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -29,7 +30,6 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
-import static org.schabi.newpipe.extractor.ExtractorAsserts.assertEmpty;
 import static org.schabi.newpipe.extractor.ExtractorAsserts.assertIsSecureUrl;
 import static org.schabi.newpipe.extractor.ServiceList.YouTube;
 
@@ -246,7 +246,25 @@ public class YoutubeStreamExtractorDefaultTest {
 
         @Test
         public void testGetLicence() {
-            assertTrue(extractor.getLicence().contains("(on behalf of XL Recordings Limited.);"));
+
+            assertEquals("YouTube licence", extractor.getLicence());
+        }
+    }
+
+    public static class CreativeCommonsLicence {
+        private static YoutubeStreamExtractor extractor;
+
+        @BeforeClass
+        public static void setUp() throws Exception {
+            NewPipe.init(DownloaderTestImpl.getInstance());
+            extractor = (YoutubeStreamExtractor) YouTube
+                    .getStreamExtractor("https://youtube.com/watch?v=IuArYvVbUo0");
+            extractor.fetchPage();
+        }
+
+        @Test
+        public void testGetLicence() {
+            assertEquals("Creative Commons Attribution licence (reuse allowed)", extractor.getLicence());
         }
     }
 
@@ -276,7 +294,7 @@ public class YoutubeStreamExtractorDefaultTest {
 
         @Test
         public void testGetLicence() {
-            assertEmpty(extractor.getLicence());
+            assertEquals("YouTube licence", extractor.getLicence());
         }
     }
 

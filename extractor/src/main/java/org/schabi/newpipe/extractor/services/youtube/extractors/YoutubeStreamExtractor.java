@@ -3,7 +3,6 @@ package org.schabi.newpipe.extractor.services.youtube.extractors;
 import com.grack.nanojson.JsonArray;
 import com.grack.nanojson.JsonObject;
 import com.grack.nanojson.JsonParser;
-
 import org.mozilla.javascript.Context;
 import org.mozilla.javascript.Function;
 import org.mozilla.javascript.ScriptableObject;
@@ -37,6 +36,8 @@ import org.schabi.newpipe.extractor.utils.JsonUtils;
 import org.schabi.newpipe.extractor.utils.Parser;
 import org.schabi.newpipe.extractor.utils.Utils;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.text.SimpleDateFormat;
@@ -49,9 +50,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 
 import static org.schabi.newpipe.extractor.services.youtube.YoutubeParsingHelper.fixThumbnailUrl;
 import static org.schabi.newpipe.extractor.services.youtube.YoutubeParsingHelper.getJsonResponse;
@@ -93,15 +91,15 @@ public class YoutubeStreamExtractor extends StreamExtractor {
 
     /*//////////////////////////////////////////////////////////////////////////*/
 
-    private JsonArray initialAjaxJson;
+    public JsonArray initialAjaxJson;
     @Nullable
     private JsonObject playerArgs;
     @Nonnull
     private final Map<String, String> videoInfoPage = new HashMap<>();
     private JsonObject playerResponse;
-    private JsonObject initialData;
+    public JsonObject initialData;
     private JsonObject videoPrimaryInfoRenderer;
-    private JsonObject videoSecondaryInfoRenderer;
+    public JsonObject videoSecondaryInfoRenderer;
     private int ageLimit;
 
     @Nonnull
@@ -151,12 +149,14 @@ public class YoutubeStreamExtractor extends StreamExtractor {
                 TimeAgoParser timeAgoParser = TimeAgoPatternsManager.getTimeAgoParserFor(Localization.fromLocalizationCode("en"));
                 Calendar parsedTime = timeAgoParser.parse(time).date();
                 return new SimpleDateFormat("yyyy-MM-dd").format(parsedTime.getTime());
-            } catch (Exception ignored) {}
+            } catch (Exception ignored) {
+            }
 
             try { // Premiered Feb 21, 2020
                 Date d = new SimpleDateFormat("MMM dd, YYYY", Locale.ENGLISH).parse(time);
                 return new SimpleDateFormat("yyyy-MM-dd").format(d.getTime());
-            } catch (Exception ignored) {}
+            } catch (Exception ignored) {
+            }
         }
 
         try {
@@ -252,7 +252,7 @@ public class YoutubeStreamExtractor extends StreamExtractor {
     public long getViewCount() throws ParsingException {
         assertPageFetched();
         String views = getTextFromObject(getVideoPrimaryInfoRenderer().getObject("viewCount")
-                    .getObject("videoViewCountRenderer").getObject("viewCount"));
+                .getObject("videoViewCountRenderer").getObject("viewCount"));
 
         if (isNullOrEmpty(views)) {
             views = playerResponse.getObject("videoDetails").getString("viewCount");
@@ -316,9 +316,9 @@ public class YoutubeStreamExtractor extends StreamExtractor {
     public String getUploaderUrl() throws ParsingException {
         assertPageFetched();
 
-            String uploaderUrl = getUrlFromNavigationEndpoint(getVideoSecondaryInfoRenderer()
-                    .getObject("owner").getObject("videoOwnerRenderer").getObject("navigationEndpoint"));
-            if (!isNullOrEmpty(uploaderUrl)) return uploaderUrl;
+        String uploaderUrl = getUrlFromNavigationEndpoint(getVideoSecondaryInfoRenderer()
+                .getObject("owner").getObject("videoOwnerRenderer").getObject("navigationEndpoint"));
+        if (!isNullOrEmpty(uploaderUrl)) return uploaderUrl;
 
 
         String uploaderId = playerResponse.getObject("videoDetails").getString("channelId");
@@ -333,7 +333,7 @@ public class YoutubeStreamExtractor extends StreamExtractor {
     public String getUploaderName() throws ParsingException {
         assertPageFetched();
         String uploaderName = getTextFromObject(getVideoSecondaryInfoRenderer().getObject("owner")
-                    .getObject("videoOwnerRenderer").getObject("title"));
+                .getObject("videoOwnerRenderer").getObject("title"));
 
         if (isNullOrEmpty(uploaderName)) {
             uploaderName = playerResponse.getObject("videoDetails").getString("author");
@@ -1032,16 +1032,16 @@ public class YoutubeStreamExtractor extends StreamExtractor {
     @Override
     public String getLicence() {
         try {
-            JsonArray rows = initialData.getObject("contents")
-                    .getObject("twoColumnWatchNextResults").getObject("results").getObject("results")
-                    .getArray("contents").getObject(1).getObject("videoSecondaryInfoRenderer")
-                    .getObject("metadataRowContainer").getObject("metadataRowContainerRenderer").getArray("rows");
-            JsonObject metadataRowRenderer = rows.getObject(rows.size() - 1) // it is usually last
+            final JsonObject metadataRowRenderer = getVideoSecondaryInfoRenderer()
+                    .getObject("metadataRowContainer").getObject("metadataRowContainerRenderer").getArray("rows")
+                    .getObject(0)
                     .getObject("metadataRowRenderer");
-            String probablyLicence = getTextFromObject(metadataRowRenderer.getArray("contents").getObject(0));
-            return getTextFromObject(metadataRowRenderer.getObject("title")).toLowerCase().contains("licensed")
-                    ? probablyLicence
-                    : "";
+
+            final String probablyLicence = getTextFromObject(metadataRowRenderer
+                    .getArray("contents").getObject(0));
+
+            return probablyLicence == null || !probablyLicence.contains("Creative Commons")
+                    ? "YouTube licence" : probablyLicence;
         } catch (Exception e) {
             return "";
         }
