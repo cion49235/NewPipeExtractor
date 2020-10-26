@@ -3,7 +3,6 @@ package org.schabi.newpipe.extractor.services.youtube.extractors;
 import com.grack.nanojson.JsonArray;
 import com.grack.nanojson.JsonObject;
 import com.grack.nanojson.JsonParser;
-
 import org.mozilla.javascript.Context;
 import org.mozilla.javascript.Function;
 import org.mozilla.javascript.ScriptableObject;
@@ -23,39 +22,18 @@ import org.schabi.newpipe.extractor.localization.TimeAgoPatternsManager;
 import org.schabi.newpipe.extractor.services.youtube.ItagItem;
 import org.schabi.newpipe.extractor.services.youtube.YoutubeParsingHelper;
 import org.schabi.newpipe.extractor.services.youtube.linkHandler.YoutubeChannelLinkHandlerFactory;
-import org.schabi.newpipe.extractor.stream.AudioStream;
-import org.schabi.newpipe.extractor.stream.Description;
-import org.schabi.newpipe.extractor.stream.Frameset;
-import org.schabi.newpipe.extractor.stream.Stream;
-import org.schabi.newpipe.extractor.stream.StreamExtractor;
-import org.schabi.newpipe.extractor.stream.StreamInfoItemExtractor;
-import org.schabi.newpipe.extractor.stream.StreamInfoItemsCollector;
-import org.schabi.newpipe.extractor.stream.StreamType;
-import org.schabi.newpipe.extractor.stream.SubtitlesStream;
-import org.schabi.newpipe.extractor.stream.VideoStream;
+import org.schabi.newpipe.extractor.stream.*;
 import org.schabi.newpipe.extractor.utils.Parser;
 import org.schabi.newpipe.extractor.utils.Utils;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Collections;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
+import java.util.*;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
-
-import static org.schabi.newpipe.extractor.services.youtube.YoutubeParsingHelper.fixThumbnailUrl;
-import static org.schabi.newpipe.extractor.services.youtube.YoutubeParsingHelper.getJsonResponse;
-import static org.schabi.newpipe.extractor.services.youtube.YoutubeParsingHelper.getTextFromObject;
-import static org.schabi.newpipe.extractor.services.youtube.YoutubeParsingHelper.getUrlFromNavigationEndpoint;
+import static org.schabi.newpipe.extractor.services.youtube.YoutubeParsingHelper.*;
 import static org.schabi.newpipe.extractor.utils.JsonUtils.EMPTY_STRING;
 import static org.schabi.newpipe.extractor.utils.Utils.isNullOrEmpty;
 
@@ -102,6 +80,8 @@ public class YoutubeStreamExtractor extends StreamExtractor {
     private JsonObject videoPrimaryInfoRenderer;
     private JsonObject videoSecondaryInfoRenderer;
     private int ageLimit;
+
+    private boolean newJsonScheme;
 
     @Nonnull
     private List<SubtitlesInfo> subtitlesInfos = new ArrayList<>();
@@ -156,12 +136,14 @@ public class YoutubeStreamExtractor extends StreamExtractor {
                 TimeAgoParser timeAgoParser = TimeAgoPatternsManager.getTimeAgoParserFor(Localization.fromLocalizationCode("en"));
                 Calendar parsedTime = timeAgoParser.parse(time).date();
                 return new SimpleDateFormat("yyyy-MM-dd").format(parsedTime.getTime());
-            } catch (Exception ignored) {}
+            } catch (Exception ignored) {
+            }
 
             try { // Premiered Feb 21, 2020
                 Date d = new SimpleDateFormat("MMM dd, YYYY", Locale.ENGLISH).parse(time);
                 return new SimpleDateFormat("yyyy-MM-dd").format(d.getTime());
-            } catch (Exception ignored) {}
+            } catch (Exception ignored) {
+            }
         }
 
         try {
@@ -169,7 +151,8 @@ public class YoutubeStreamExtractor extends StreamExtractor {
             Date d = new SimpleDateFormat("dd MMM yyyy", Locale.ENGLISH).parse(
                     getTextFromObject(getVideoPrimaryInfoRenderer().getObject("dateText")));
             return new SimpleDateFormat("yyyy-MM-dd").format(d);
-        } catch (Exception ignored) {}
+        } catch (Exception ignored) {
+        }
         throw new ParsingException("Could not get upload date");
     }
 
@@ -368,7 +351,8 @@ public class YoutubeStreamExtractor extends StreamExtractor {
         try {
             uploaderName = getTextFromObject(getVideoSecondaryInfoRenderer().getObject("owner")
                     .getObject("videoOwnerRenderer").getObject("title"));
-        } catch (ParsingException ignored) { }
+        } catch (ParsingException ignored) {
+        }
 
         if (isNullOrEmpty(uploaderName)) {
             uploaderName = playerResponse.getObject("videoDetails").getString("author");
@@ -403,19 +387,19 @@ public class YoutubeStreamExtractor extends StreamExtractor {
 
     @Nonnull
     @Override
-    public String getSubChannelUrl() throws ParsingException {
+    public String getSubChannelUrl() {
         return "";
     }
 
     @Nonnull
     @Override
-    public String getSubChannelName() throws ParsingException {
+    public String getSubChannelName() {
         return "";
     }
 
     @Nonnull
     @Override
-    public String getSubChannelAvatarUrl() throws ParsingException {
+    public String getSubChannelAvatarUrl() {
         return "";
     }
 
@@ -664,25 +648,22 @@ public class YoutubeStreamExtractor extends StreamExtractor {
             JsonObject playerConfig;
 
             // sometimes at random YouTube does not provide the player config,
-            // so just retry the same request three times
-            int attempts = 2;
-            while (true) {
-                playerConfig = initialAjaxJson.getObject(2).getObject("player", null);
-                if (playerConfig != null) {
-                    break;
-                }
+            playerConfig = initialAjaxJson.getObject(2).getObject("player", null);
+            if (playerConfig == null) {
+                newJsonScheme = true;
 
-                if (attempts <= 0) {
-                    throw new ParsingException(
-                            "YouTube did not provide player config even after three attempts");
-                }
-                initialAjaxJson = getJsonResponse(url, getExtractorLocalization());
-                --attempts;
+                initialData = initialAjaxJson.getObject(3).getObject("response");
+                final EmbeddedInfo info = getEmbeddedInfo();
+                final String videoInfoUrl = getVideoInfoUrl(getId(), info.sts);
+                final String infoPageResponse = downloader.get(videoInfoUrl, getExtractorLocalization()).responseBody();
+                videoInfoPage.putAll(Parser.compatParseMap(infoPageResponse));
+                playerUrl = info.url;
+            } else {
+                initialData = initialAjaxJson.getObject(3).getObject("response");
+
+                playerArgs = getPlayerArgs(playerConfig);
+                playerUrl = getPlayerUrl(playerConfig);
             }
-            initialData = initialAjaxJson.getObject(3).getObject("response");
-
-            playerArgs = getPlayerArgs(playerConfig);
-            playerUrl = getPlayerUrl(playerConfig);
         }
 
         playerResponse = getPlayerResponse();
@@ -730,6 +711,10 @@ public class YoutubeStreamExtractor extends StreamExtractor {
     private JsonObject getPlayerResponse() throws ParsingException {
         try {
             String playerResponseStr;
+            if (newJsonScheme) {
+                return initialAjaxJson.getObject(2).getObject("playerResponse");
+            }
+
             if (playerArgs != null) {
                 playerResponseStr = playerArgs.getString("player_response");
             } else {
@@ -1000,7 +985,8 @@ public class YoutubeStreamExtractor extends StreamExtractor {
 
                         urlAndItags.put(streamUrl, itagItem);
                     }
-                } catch (UnsupportedEncodingException ignored) {}
+                } catch (UnsupportedEncodingException ignored) {
+                }
             }
         }
 
